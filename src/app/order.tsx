@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { colors } from '../constants/colors';
 import { products } from '../constants/products';
-
+import { loadOrders, saveOrders } from '../storage/orders';
 export default function Order() {
   const { id } = useLocalSearchParams();
   const product = products.find((item) => item.id === id);
@@ -31,7 +31,7 @@ export default function Order() {
     }
   };
 
-  const handleSubmit = () => {
+ const handleSubmit = async () => {
     let isValid = true;
 
     if (name.trim().length < 3) {
@@ -47,8 +47,19 @@ export default function Order() {
     } else {
       setPhoneError('');
     }
-
+    
     if (isValid) {
+      const orders = await loadOrders();
+
+const newOrder = {
+  id: Date.now().toString(),
+  product: product.name,
+  price: product.price,
+  name: name.trim(),
+  date: new Date().toLocaleDateString('es-BO'),
+};
+
+await saveOrders([newOrder, ...orders]);
       router.push({
         pathname: '/order-confirmed',
         params: { name: name.trim(), product: product.name },
